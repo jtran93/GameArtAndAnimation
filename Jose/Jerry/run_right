@@ -1,1 +1,0 @@
-jerry running right animation
