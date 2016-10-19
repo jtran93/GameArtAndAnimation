@@ -5,59 +5,64 @@ using System.Linq;
 public class PlayerManager : MonoBehaviour
 {
 
-    public float speedX;
-    public float jumpSpeedY;
+
+
+
+    public float speed;
+    public float JumpHeight;
+
+    public bool FacingRight
+    {
+        get { return spriteRenderer.flipX == false; }
+        set { spriteRenderer.flipX = !value; }
+    }
     public GameObject leftBullet;
     public GameObject rightBullet;
 
     bool isGrounded;
     bool hasLeftGround;
-    bool facingRight;
-    float speed;
-    Animator animator;
-    BoxCollider2D boxCollider;
-    Transform firePoint;
-    Rigidbody2D rb;
+
+    private SpriteRenderer spriteRenderer;
+    private Animator animator;
+    private BoxCollider2D boxCollider;
+    private Transform firePoint;
+    private Rigidbody2D rb;
 
     void Start()
     {
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
-        facingRight = true;
+        spriteRenderer = GetComponent<SpriteRenderer>();
         firePoint = transform.FindChild("firePoint");
     }
 
     void Update()
     {
 
-        GroundCheck(); 
+        GroundCheck();
+        var horizontalInput = Input.GetAxis("Horizontal");
         // player movement
-        MovePlayer(speed);
 
-        // left player movement
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        // Check to see if there even is an input
+        if (Mathf.Abs(horizontalInput) > 0.0f && isGrounded)
         {
-            speed = -speedX;
+            Move(horizontalInput);
+            RunAnimation();
         }
-        if (Input.GetKeyUp(KeyCode.LeftArrow))
-        {
-            StopWalk();
-        }
-        //
 
-        // right player movement
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Mathf.Abs(horizontalInput) < 0.0f && isGrounded)
         {
-            speed = speedX;
+            Move(horizontalInput);
+            RunAnimation();
         }
-        if (Input.GetKeyUp(KeyCode.RightArrow))
-        {
-            StopWalk();
-        }
-        //
 
-        Flip();
+
+        // There was no input, so we should be idle
+        else if (rb.velocity == Vector2.zero)
+        {
+            IdleAnimation();
+        }
 
         // jump
         if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
@@ -75,59 +80,38 @@ public class PlayerManager : MonoBehaviour
 
     }
 
-    void MovePlayer(float playerSpeed)
+    public void Move(float direction)
     {
-        // code for player movement
-        if (playerSpeed < 0 && isGrounded || playerSpeed > 0 && isGrounded)
+        // If our direction is positive, we're moving to the right
+        if (direction > 0.0f)
         {
-            animator.SetInteger("State", 2);
+            FacingRight = true;
+            // Otherwise, we're going left
+            // Note: we don't care about 0.0f, because it'd be unusual for our character to constantly face right
         }
-        if (playerSpeed == 0 && isGrounded)
+        else if (direction < 0.0f)
         {
-            animator.SetInteger("State", 0);
+            FacingRight = false;
         }
-        rb.velocity = new Vector3(speed, rb.velocity.y, 0);
+
+        // Set our Velocity to move on the next FixedUpdate tick
+        rb.velocity = new Vector2(direction * speed, rb.velocity.y);
     }
 
-    void Flip()
-    {
-        if (speed > 0 && !facingRight || speed < 0 && facingRight)
-        {
-            facingRight = !facingRight;
-            Vector3 temp = transform.localScale;
-            temp.x *= -1;
-            transform.localScale = temp;
-        }
-    }
 
     public void Fire()
     {
-        if (facingRight)
+        if (FacingRight)
             Instantiate(rightBullet, firePoint.position, Quaternion.identity);
-        if (!facingRight)
+        if (!FacingRight)
             Instantiate(leftBullet, firePoint.position, Quaternion.identity);
     }
 
     public void Jump()
     {
-        //jumping = true;
-        rb.AddForce(new Vector2(rb.velocity.x, jumpSpeedY));
+        rb.AddForce(new Vector2(rb.velocity.x, Mathf.Sqrt(-2.0f * JumpHeight * Physics2D.gravity.y)));
     }
 
-    public void WalkLeft()
-    {
-        speed = -speedX;
-    }
-
-    public void WalkRight()
-    {
-        speed = speedX;
-    }
-
-    public void StopWalk()
-    {
-        speed = 0;
-    }
 
     private void GroundCheck()
     {
@@ -155,5 +139,15 @@ public class PlayerManager : MonoBehaviour
             gameObject.SetActive(false);
 
         }
+    }
+
+    private void RunAnimation()
+    {
+        animator.SetInteger("State", 2);
+    }
+
+    private void IdleAnimation()
+    {
+        animator.SetInteger("State", 0);
     }
 }
