@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class PlayerManager : MonoBehaviour
     public GameObject leftBullet;
     public GameObject rightBullet;
 
+    bool hasKey;
     bool facingRight;
     bool jumping;
     float speed;
@@ -21,6 +23,7 @@ public class PlayerManager : MonoBehaviour
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         facingRight = true;
+        hasKey = false;
         firePoint = transform.FindChild("firePoint");
     }
 
@@ -72,25 +75,35 @@ public class PlayerManager : MonoBehaviour
     void MovePlayer(float playerSpeed)
     {
         // code for player movement
-        if(playerSpeed < 0 && !jumping || playerSpeed > 0 && !jumping)
+        if (playerSpeed < 0 && !jumping || playerSpeed > 0 && !jumping)
         {
             animator.SetInteger("State", 2);
         }
-        if(playerSpeed == 0 && !jumping)
+        if (playerSpeed == 0 && !jumping)
         {
             animator.SetInteger("State", 0);
         }
         rb.velocity = new Vector3(speed, rb.velocity.y, 0);
     }
 
-    void OnCollisionEnter2D(Collision2D otherObject)
+    void OnTriggerEnter2D(Collider2D otherObject)
     {
-        if(otherObject.gameObject.tag == "Enemy")
+        if (otherObject.gameObject.tag == "Enemy")
         {
             Destroy(gameObject);
+            loadScene("Fail");
+        }
+        else if (otherObject.gameObject.tag == "Key")
+        {
+            hasKey = true;
+            Destroy(otherObject.gameObject);
+        }
+        else if(otherObject.gameObject.tag == "Door")
+        {
+            if (hasKey)
+                loadScene("Victory");
         }
     }
-    
 
     void Flip()
     {
@@ -105,9 +118,9 @@ public class PlayerManager : MonoBehaviour
 
     public void Fire()
     {
-        if(facingRight)
+        if (facingRight)
             Instantiate(rightBullet, firePoint.position, Quaternion.identity);
-        if(!facingRight)
+        if (!facingRight)
             Instantiate(leftBullet, firePoint.position, Quaternion.identity);
     }
 
@@ -130,5 +143,10 @@ public class PlayerManager : MonoBehaviour
     public void StopWalk()
     {
         speed = 0;
+    }
+
+    public void loadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
     }
 }
