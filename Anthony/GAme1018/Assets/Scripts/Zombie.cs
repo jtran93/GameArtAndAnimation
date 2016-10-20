@@ -77,23 +77,41 @@ public class Zombie : MonoBehaviour
     }
 
 
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.tag == "Player")
-        {
-            playerInAggroRange = false;
-            rb.velocity = new Vector2(0f, 0f);
-        }
-    }
-
-
     void MoveToPlayer()
     {
         //rotate to look at player
-        
+        if(target.transform.position.x > transform.position.x)
+        {
+            if(facingRight)
+            {
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+            }
+            else
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+                facingRight = true;
 
-        //move towards player
-        transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+            }
+        }
+        else if (target.transform.position.x < transform.position.x)
+        {
+            if (facingRight)
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+                facingRight = false;
+            }
+            else
+            {
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+
+            }
+        }
 
     }
 
