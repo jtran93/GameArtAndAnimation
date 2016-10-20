@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Linq;
+using UnityEngine.UI;
+
 
 public class PlayerManager : MonoBehaviour
 {
@@ -10,6 +12,9 @@ public class PlayerManager : MonoBehaviour
 
     public float speed;
     public float JumpHeight;
+    public float delayDamage;
+    public Color hurtColor = Color.red;
+    public Color normalColor = Color.white;
 
     public bool FacingRight
     {
@@ -18,12 +23,15 @@ public class PlayerManager : MonoBehaviour
     }
     public GameObject leftBullet;
     public GameObject rightBullet;
-
+    Player player;
     bool isGrounded;
     bool hasLeftGround;
+    bool cantBeHurt;
 
     private SpriteRenderer spriteRenderer;
+    private Renderer renderer;
     private Animator animator;
+    public Text healthText;
     private BoxCollider2D boxCollider;
     private Transform firePoint;
     private Rigidbody2D rb;
@@ -34,7 +42,11 @@ public class PlayerManager : MonoBehaviour
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        renderer = GetComponent<Renderer>();
+        cantBeHurt = false;
         firePoint = transform.FindChild("firePoint");
+        player = new Player();
+        healthText.text = "Health: " + player.playerStats.health.ToString();
     }
 
     void Update()
@@ -78,7 +90,24 @@ public class PlayerManager : MonoBehaviour
         }
         //
 
+
+
     }
+
+    public void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.CompareTag("Enemy") && !cantBeHurt)
+        {
+            player.damagePlayer(1);
+            setHealthText();
+            StartCoroutine(Flasher());
+            if (player.playerStats.health <= 0)
+            {
+                this.gameObject.SetActive(false);
+            }
+        }
+    }
+
 
     public void Move(float direction)
     {
@@ -132,15 +161,6 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.gameObject.CompareTag("Enemy"))
-        {
-            gameObject.SetActive(false);
-
-        }
-    }
-
     private void RunAnimation()
     {
         animator.SetInteger("State", 2);
@@ -149,5 +169,23 @@ public class PlayerManager : MonoBehaviour
     private void IdleAnimation()
     {
         animator.SetInteger("State", 0);
+    }
+
+    void setHealthText()
+    {
+        healthText.text = "Health: " + player.playerStats.health.ToString();
+    }
+
+    IEnumerator Flasher()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            renderer.material.color = hurtColor;
+            cantBeHurt = true;
+            yield return new WaitForSeconds(.1f);
+            renderer.material.color = normalColor;
+            yield return new WaitForSeconds(.1f);
+            cantBeHurt = false;
+        }
     }
 }

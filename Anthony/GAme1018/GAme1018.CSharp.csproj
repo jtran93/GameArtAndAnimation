@@ -67,9 +67,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\BulletController.cs" />
+    <Compile Include="Assets\Scripts\Camera2DFollow.cs" />
     <Compile Include="Assets\Scripts\DestroyWithDelay.cs" />
     <Compile Include="Assets\Scripts\ExitController.cs" />
+    <Compile Include="Assets\Scripts\GameMaster.cs" />
+    <Compile Include="Assets\Scripts\Health.cs" />
     <Compile Include="Assets\Scripts\MenuController.cs" />
+    <Compile Include="Assets\Scripts\Parallaxing.cs" />
+    <Compile Include="Assets\Scripts\Player.cs" />
     <Compile Include="Assets\Scripts\PlayerManager.cs" />
     <Compile Include="Assets\Scripts\Zombie.cs" />
   </ItemGroup>
