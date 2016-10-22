@@ -12,7 +12,6 @@ public class PlayerManager : MonoBehaviour
 
     public float speed;
     public float JumpHeight;
-    public float delayDamage;
     public Color hurtColor = Color.red;
     public Color normalColor = Color.white;
 
