@@ -58,32 +58,30 @@ public class PlayerManager : MonoBehaviour
         // left player movement
         if (Input.GetKeyDown(KeyCode.LeftArrow) && isGrounded)
             speed = -speedX;
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && isGrounded)
+        if (Input.GetKeyUp(KeyCode.LeftArrow))
             StopWalk();
         //
 
         // right player movement
         if (Input.GetKeyDown(KeyCode.RightArrow) && isGrounded)
             speed = speedX;
-        if (Input.GetKeyUp(KeyCode.RightArrow) && isGrounded)
+        if (Input.GetKeyUp(KeyCode.RightArrow))
             StopWalk();
         //
 
         Flip();
 
+        if (rb.velocity == Vector2.zero)
+        {
+            IdleAnimation();
+        }
 
         // jump
         if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
         {
             Jump();
-        }
 
-        if(Input.GetKeyDown(KeyCode.LeftArrow) && !isGrounded)
-        {
-            Flip();
         }
-
-        //
 
         // shoot
         if (Input.GetKeyDown(KeyCode.Space))
@@ -171,8 +169,8 @@ public class PlayerManager : MonoBehaviour
 
     public void Jump()
     {
-        
-        rb.AddForce(new Vector2(rb.velocity.x, JumpHeight));
+
+        rb.AddForce(new Vector2(rb.velocity.x, Mathf.Sqrt(-2.0f * JumpHeight * Physics2D.gravity.y)));
     }
 
     private void GroundCheck()
