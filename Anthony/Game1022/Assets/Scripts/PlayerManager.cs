@@ -7,16 +7,12 @@ using UnityEngine.UI;
 public class PlayerManager : MonoBehaviour
 {
 
-    public float speed;
+    public float speedX;
     public float JumpHeight;
     public Color hurtColor = Color.red;
     public Color normalColor = Color.white;
 
-    public bool FacingRight
-    {
-        get { return spriteRenderer.flipX == false; }
-        set { spriteRenderer.flipX = !value; }
-    }
+    bool facingRight;
 
     public GameObject leftBullet;
     private bool hasKey;
@@ -24,10 +20,11 @@ public class PlayerManager : MonoBehaviour
     Player player;
     bool isGrounded;
     bool hasLeftGround;
+    float speed;
     bool cantBeHurt;
-    bool isMoveRight;
-    bool isMoveLeft;
 
+
+    private bool wasRunningBeforeJump = false;
     private SpriteRenderer spriteRenderer;
     private Renderer renderer;
     private Animator animator;
@@ -45,7 +42,8 @@ public class PlayerManager : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         renderer = GetComponent<Renderer>();
         cantBeHurt = false;
-        player = new Player();
+        facingRight = true;
+        player = GetComponent<Player>();
         healthText.text = "Health: " + player.playerStats.health.ToString();
         hasKey = false;
         firePoint = transform.FindChild("firePoint");
@@ -54,32 +52,37 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         GroundCheck();
+        MovePlayer(speed);
         // player movement
 
-        // Check to see if there even is an input
-        if (isMoveRight && isGrounded)
-        {
-            Move(1);
-            RunAnimation();
-        }
+        // left player movement
+        if (Input.GetKeyDown(KeyCode.LeftArrow) && isGrounded)
+            speed = -speedX;
+        if (Input.GetKeyUp(KeyCode.LeftArrow) && isGrounded)
+            StopWalk();
+        //
 
-        else if (isMoveLeft && isGrounded)
-        {
-            Move(-1);
-            RunAnimation();
-        }
+        // right player movement
+        if (Input.GetKeyDown(KeyCode.RightArrow) && isGrounded)
+            speed = speedX;
+        if (Input.GetKeyUp(KeyCode.RightArrow) && isGrounded)
+            StopWalk();
+        //
 
-        // There was no input, so we should be idle
-        else if (rb.velocity == Vector2.zero)
-        {
-            IdleAnimation();
-        }
+        Flip();
+
 
         // jump
         if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
         {
             Jump();
         }
+
+        if(Input.GetKeyDown(KeyCode.LeftArrow) && !isGrounded)
+        {
+            Flip();
+        }
+
         //
 
         // shoot
@@ -90,24 +93,29 @@ public class PlayerManager : MonoBehaviour
 
     }
 
-    public void Move(float direction)
+    void MovePlayer(float playerSpeed)
     {
-        // If our direction is positive, we're moving to the right
-        if (direction > 0.0f)
+        // code for player movement
+        if (playerSpeed < 0 && isGrounded || playerSpeed > 0 && isGrounded)
         {
-            FacingRight = true;
-            // Otherwise, we're going left
-            // Note: we don't care about 0.0f, because it'd be unusual for our character to constantly face right
+            RunAnimation();
         }
-        else if (direction < 0.0f)
+        if (playerSpeed == 0 && isGrounded)
         {
-            FacingRight = false;
+            IdleAnimation();
         }
+        rb.velocity = new Vector3(speed, rb.velocity.y, 0);
+    }
 
-        // Set our Velocity to move on the next FixedUpdate tick
-        
-        rb.velocity = new Vector2(direction * speed, rb.velocity.y);
-        
+    void Flip()
+    {
+        if (speed > 0 && !facingRight || speed < 0 && facingRight)
+        {
+            facingRight = !facingRight;
+            Vector3 temp = transform.localScale;
+            temp.x *= -1;
+            transform.localScale = temp;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D otherObject)
@@ -131,8 +139,6 @@ public class PlayerManager : MonoBehaviour
         }
         else if(otherObject.gameObject.tag == "Door")
         {
-            Debug.Log("Door Touched");
-            Debug.Log(hasKey);
             if (hasKey)
                 loadScene("Victory");
         }
@@ -157,15 +163,15 @@ public class PlayerManager : MonoBehaviour
 
     public void Fire()
     {
-        if (FacingRight)
+        if (facingRight)
             Instantiate(rightBullet, firePoint.position, Quaternion.identity);
-        if (!FacingRight)
+        if (!facingRight)
             Instantiate(leftBullet, firePoint.position, Quaternion.identity);
     }
 
     public void Jump()
     {
-        //jumping = true;
+        
         rb.AddForce(new Vector2(rb.velocity.x, JumpHeight));
     }
 
@@ -221,27 +227,19 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void OnPointerDownRight()
+    public void WalkLeft()
     {
-        isMoveRight = true;
+        speed = -speedX;
     }
 
-    public void OnPointerUpRight()
+    public void WalkRight()
     {
-        isMoveRight = false;
-        rb.velocity = Vector2.zero;
-        
+        speed = speedX;
     }
 
-    public void OnPointerDownLeft()
+    public void StopWalk()
     {
-        isMoveLeft = true;
-        
+        speed = 0;
     }
 
-    public void OnPointerUpLeft()
-    {
-        isMoveLeft = false;
-        rb.velocity = Vector2.zero;
-    }
 }
