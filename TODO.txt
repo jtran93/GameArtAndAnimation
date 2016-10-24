@@ -4,6 +4,7 @@ EXAMPLE
 
 ANTHONY
   Priority
+    -Seamless/Scrolling background
     -Create game objects/prefabs
       -Treant
       -Wolf
