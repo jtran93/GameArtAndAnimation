@@ -1,0 +1,41 @@
+If you have done or finished a part, put a "DONE" tag to indicate it and commit it
+EXAMPLE
+  Create game - DONE
+
+ANTHONY
+  Priority
+    -Create game objects/prefabs
+      -Treant
+      -Wolf
+      -Boss Wolf
+    -Allow player to walk up ramps
+      ...Maybe we should get rid of ramps all together???
+  Other
+    -Fix camera parallaxing script
+
+Matthew
+  Priority
+    -Create WoodLevel.png without objects, just the ground
+    
+Jose
+  Priority
+    -Create Jerry animations
+      -Death
+      -Jump
+    -Create death animations for
+      -Boss Wolf
+      -Treant
+      -Wolf
+      
+Johnathan
+  Priority
+    -Add game objects to tutorial level - done
+    -Create dialog for tutorial level
+    -Create melee for Jerry
+    -Add game objects to WoodLevel
+    -Create game objects/prefabs
+      -Treant
+      -Wolf
+      -Boss Wolf
+    -Build and run on phone
+    -Create youtube video, post on trello BEFORE CLASS ON TUESDAY
