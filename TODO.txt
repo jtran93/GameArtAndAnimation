@@ -17,7 +17,6 @@ ANTHONY
 Matthew
   Priority
     -Create WoodLevel.png without objects, just the ground
-    -Background
     
 Jose
   Priority
