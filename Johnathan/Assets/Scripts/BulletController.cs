@@ -19,7 +19,8 @@ public class BulletController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D otherObject)
     {
-        if (otherObject.gameObject.tag != "Player")
+
+        if (otherObject.gameObject.tag == "Enemy")
         {
             Destroy(gameObject);
             //Destroy(otherObject.gameObject);

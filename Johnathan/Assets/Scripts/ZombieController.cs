@@ -3,9 +3,18 @@ using System.Collections;
 
 public class ZombieController : MonoBehaviour
 {
-    public float moveSpeed;
+    public float speed;
+    private float wallLeft;
+    private float wallRight;
+    public float patrolWidth = 3.50f;
+    Vector3 walkAmount;
+    Transform myTrans;
+    public Transform target;
 
-    bool isGrounded = false;
+    public GameObject enemyGraphic;
+    bool playerInAggroRange;
+    bool facingRight;
+
     bool isDead = false;
     Animator animator;
     Rigidbody2D rb;
@@ -17,36 +26,104 @@ public class ZombieController : MonoBehaviour
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         bc2d = GetComponent<BoxCollider2D>();
-	}
-	
-	void Update ()
+        animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        wallLeft = transform.position.x - patrolWidth / 2;
+        wallRight = transform.position.x + patrolWidth / 2;
+        myTrans = this.transform;
+        playerInAggroRange = false;
+        facingRight = true;
+    }
+
+    void FixedUpdate()
     {
+        if (playerInAggroRange) {
+            animator.SetInteger("State", 1);
+            MoveToPlayer();
+        }
+
+        if (!playerInAggroRange)
+        {
+            walkAmount.x = speed * Time.deltaTime;
+            if (facingRight && transform.position.x >= wallRight)
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                facingRight = false;
+            }
+
+            else if (!facingRight && transform.position.x <= wallLeft)
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                facingRight = true;
+            }
+
+            transform.Translate(walkAmount);
+            animator.SetInteger("State", 1);
+        }
+
         HasBeenHit();
-        MoveZombie();
         
 	}
 
     void OnTriggerEnter2D(Collider2D otherObject)
     {
-        if (otherObject.gameObject.tag == "Player" && isDead == false)
+        if (otherObject.gameObject.tag == "Player")
         {
-            Destroy(otherObject.gameObject);
+            playerInAggroRange = true;
+            MoveToPlayer();
         }
-        else if(otherObject.gameObject.tag == "Bullet")
+
+        if (otherObject.gameObject.tag == "Bullet")
         {
             isDead = true;
-            childGo = transform.Find("boxCollider").gameObject;
-
             StopWalk();
             rb.isKinematic = true;
             Destroy(bc2d);
-            Destroy(childGo);
             Destroy(gameObject, 2);
+            
         }
-        else if(otherObject.gameObject.tag == "GROUND")
+    }
+
+    void MoveToPlayer()
+    {
+        //rotate to look at player
+        if (target.transform.position.x > transform.position.x)
         {
-            isGrounded = true;
+            if (facingRight)
+            {
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+            }
+            else
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+                facingRight = true;
+
+            }
         }
+        else if (target.transform.position.x < transform.position.x)
+        {
+            if (facingRight)
+            {
+                Vector3 currRot = myTrans.eulerAngles;
+                currRot.y += 180;
+                myTrans.eulerAngles = currRot;
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+                facingRight = false;
+            }
+            else
+            {
+                transform.Translate(new Vector3(speed * Time.deltaTime, 0, 0));
+
+            }
+        }
+
     }
 
     void HasBeenHit()
@@ -57,18 +134,10 @@ public class ZombieController : MonoBehaviour
         }
     }
 
-    void MoveZombie()
-    {
-        if(isGrounded == true)
-        { 
-            rb.velocity = new Vector3(moveSpeed, rb.velocity.y, 0);
-            animator.SetInteger("State", 1);
-        }
-    }
 
     public void StopWalk()
     {
         animator.SetInteger("State", 1);
-        moveSpeed = 0;
+        speed = 0;
     }
 }
