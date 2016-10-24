@@ -17,6 +17,7 @@ ANTHONY
 Matthew
   Priority
     -Create WoodLevel.png without objects, just the ground
+    -Background
     
 Jose
   Priority
@@ -27,6 +28,7 @@ Jose
       -Boss Wolf
       -Treant
       -Wolf
+    -Background
       
 Johnathan
   Priority
