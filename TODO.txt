@@ -26,8 +26,8 @@ Jose
       -Jump - DONE
     -Create death animations for
       -Boss  - DONE
-      -Treant
-      -Wolf
+      -Treant - DONE
+      -Wolf - DONE
     -Background - DONE
       
 Johnathan
