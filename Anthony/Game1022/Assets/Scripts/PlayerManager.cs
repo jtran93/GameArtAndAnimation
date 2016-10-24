@@ -7,80 +7,111 @@ using UnityEngine.UI;
 public class PlayerManager : MonoBehaviour
 {
 
-    public float speedX;
-    public float JumpHeight;
     public Color hurtColor = Color.red;
     public Color normalColor = Color.white;
 
-    bool facingRight;
+    private ActorController controller;
+    private Jumping jumper;
 
+    public bool touchScreenMode;                                //if you want to use WASD, make it false. if you want to use buttons, true.
     public GameObject leftBullet;
-    private bool hasKey;
+    private bool hasKey = false;
     public GameObject rightBullet;
     Player player;
-    bool isGrounded;
-    bool hasLeftGround;
     float speed;
-    bool cantBeHurt;
-
-
+    bool cantBeHurt = false;
+    bool facingRight = true;
+    private bool moveLeft = false;
+    private bool moveRight = false;
+    private bool jumping = false;
+    private bool runAnimation = false;
+    
     private bool wasRunningBeforeJump = false;
-    private SpriteRenderer spriteRenderer;
     private Renderer renderer;
     private Animator animator;
     public Text healthText;
-    private BoxCollider2D boxCollider;
     private Transform firePoint;
     private Rigidbody2D rb;
     
 
-    void Start()
+    public void Awake()
     {
-        boxCollider = GetComponent<BoxCollider2D>();
+        controller = GetComponent<ActorController>();
+        jumper = GetComponent<Jumping>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
         renderer = GetComponent<Renderer>();
-        cantBeHurt = false;
-        facingRight = true;
         player = GetComponent<Player>();
         healthText.text = "Health: " + player.playerStats.health.ToString();
-        hasKey = false;
         firePoint = transform.FindChild("firePoint");
     }
 
     void Update()
     {
-        GroundCheck();
-        MovePlayer(speed);
+
+        var horizontalInput = Input.GetAxis("Horizontal");
         // player movement
 
         // left player movement
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && isGrounded)
-            speed = -speedX;
-        if (Input.GetKeyUp(KeyCode.LeftArrow))
-            StopWalk();
-        //
+        if (Mathf.Abs(horizontalInput) > 0.0f || moveRight || moveLeft)                 //check for keyboard movement, or check if eventTriggers were pressed.
+            {         
+                
 
-        // right player movement
-        if (Input.GetKeyDown(KeyCode.RightArrow) && isGrounded)
-            speed = speedX;
-        if (Input.GetKeyUp(KeyCode.RightArrow))
-            StopWalk();
-        //
+                if (horizontalInput > 0.0f || moveRight == true)                        //if Right eventTrigger pressed, or if player trying to move right
+                {
+                    if(moveRight == true)
+                        horizontalInput = 1;
+                    if (controller.IsGrounded || wasRunningBeforeJump)
+                    {
+                        wasRunningBeforeJump = true;
+                        controller.Move(horizontalInput);
+                    }
+                    else
+                        controller.Move(horizontalInput * .5f);
+                    facingRight = true;
+                }
 
-        Flip();
+                if (horizontalInput < 0.0f || moveLeft == true)                         //if Left event trigger pressed, or if player trying to move left
+                {
+                    if(moveLeft == true)
+                        horizontalInput = -1;
+                    if (controller.IsGrounded || wasRunningBeforeJump)
+                    {
+                        wasRunningBeforeJump = true;
+                        controller.Move(horizontalInput);
+                    }
+                    else
+                        controller.Move(horizontalInput * .5f);
+                    facingRight = false;
+                }
 
-        if (rb.velocity == Vector2.zero)
+                if (controller.IsGrounded)                                              //no running animation unless player grounded.
+                    RunAnimation();
+        }
+
+        //idle
+        if (controller.Velocity == Vector2.zero && !touchScreenMode)                                       //if player isn't moving and touchScreenMode isnt active.
         {
             IdleAnimation();
         }
-
-        // jump
-        if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
+        if(!moveLeft && !moveRight && touchScreenMode && controller.IsGrounded)                             
         {
-            Jump();
+            rb.velocity = Vector2.zero;
+            IdleAnimation();
+        }
 
+    
+        // jump
+        if (Input.GetKeyDown(KeyCode.UpArrow) || jumping)                                          
+        {
+            if (wasRunningBeforeJump) {
+                jumper.Jump();
+            }
+            else if (!wasRunningBeforeJump)
+            {
+                IdleAnimation();
+                jumper.Jump();
+            }
         }
 
         // shoot
@@ -88,32 +119,7 @@ public class PlayerManager : MonoBehaviour
         {
             Fire();
         }
-
-    }
-
-    void MovePlayer(float playerSpeed)
-    {
-        // code for player movement
-        if (playerSpeed < 0 && isGrounded || playerSpeed > 0 && isGrounded)
-        {
-            RunAnimation();
-        }
-        if (playerSpeed == 0 && isGrounded)
-        {
-            IdleAnimation();
-        }
-        rb.velocity = new Vector3(speed, rb.velocity.y, 0);
-    }
-
-    void Flip()
-    {
-        if (speed > 0 && !facingRight || speed < 0 && facingRight)
-        {
-            facingRight = !facingRight;
-            Vector3 temp = transform.localScale;
-            temp.x *= -1;
-            transform.localScale = temp;
-        }
+        
     }
 
     void OnTriggerEnter2D(Collider2D otherObject)
@@ -167,38 +173,15 @@ public class PlayerManager : MonoBehaviour
             Instantiate(leftBullet, firePoint.position, Quaternion.identity);
     }
 
-    public void Jump()
-    {
-
-        rb.AddForce(new Vector2(rb.velocity.x, Mathf.Sqrt(-2.0f * JumpHeight * Physics2D.gravity.y)));
-    }
-
-    private void GroundCheck()
-    {
-        // Cast a box below us just a hair to see if there's any objects below us
-        var hits = Physics2D.BoxCastAll(boxCollider.bounds.center, new Vector2(boxCollider.bounds.size.x * 0.9f, boxCollider.bounds.size.y), 0.0f, Vector2.down, 0.1f);
-
-        // Check to see if any of the things we hit is in the Terrain layer and that we've already left the ground
-        if (hits.Any(hit => hit.collider.gameObject.layer == LayerMask.NameToLayer("GROUND")) && hasLeftGround)
-        {
-            isGrounded = true;
-        }
-        else
-        {
-            isGrounded = false;
-
-            // If we can't hit the ground anymore, that means we've successfully left the ground below us
-            hasLeftGround = true;
-        }
-    }
-
     private void RunAnimation()
     {
         animator.SetInteger("State", 2);
+        wasRunningBeforeJump = true;
     }
 
     private void IdleAnimation()
     {
+        wasRunningBeforeJump = false;
         animator.SetInteger("State", 0);
     }
 
@@ -225,19 +208,38 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void WalkLeft()
+    public void moveCharLeft()
     {
-        speed = -speedX;
+        moveLeft = true;
     }
 
-    public void WalkRight()
+    public void stopMovingCharLeft()
     {
-        speed = speedX;
+        moveLeft = false;
     }
 
-    public void StopWalk()
+    public void moveCharRight()
     {
-        speed = 0;
+        moveRight = true;
     }
 
+    public void stopMovingCharRight()
+    {
+        moveRight = false;
+    }
+
+    public void startJumping()
+    {
+        jumping = true;
+    }
+
+    public void stopJumping()
+    {
+        jumping = false;
+    }
+
+    public void jump()
+    {
+        jumper.Jump();
+    }
 }

@@ -11,7 +11,6 @@ public class ZombieController : MonoBehaviour
     Transform myTrans;
     public Transform target;
 
-    public GameObject enemyGraphic;
     bool playerInAggroRange;
     bool facingRight;
 
