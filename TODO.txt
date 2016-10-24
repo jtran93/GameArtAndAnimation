@@ -22,13 +22,13 @@ Matthew
 Jose
   Priority
     -Create Jerry animations
-      -Death
-      -Jump
+      -Death - DONE
+      -Jump - DONE
     -Create death animations for
-      -Boss Wolf
+      -Boss  
       -Treant
       -Wolf
-    -Background
+    -Background - DONE
       
 Johnathan
   Priority
