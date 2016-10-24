@@ -12,7 +12,7 @@ ANTHONY
     -Allow player to walk up ramps
       ...Maybe we should get rid of ramps all together???
   Other
-    -Fix camera parallaxing script
+    -Fix camera parallaxing script - MAYBE done. 
 
 Matthew
   Priority
